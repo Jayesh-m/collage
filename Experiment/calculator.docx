@@ -1,0 +1,140 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class SimpleCalculator extends JFrame implements ActionListener {
+    private JTextField display;
+    private JButton[] numberButtons;
+    private JButton addButton, subtractButton, multiplyButton, divideButton, equalsButton, clearButton;
+    private double num1, num2, result;
+    private char operator;
+
+    public SimpleCalculator() {
+        // Set up the frame
+        setTitle("Simple Calculator");
+        setSize(400, 500);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        // Create the display field
+        display = new JTextField();
+        display.setEditable(false);
+        display.setFont(new Font("Arial", Font.PLAIN, 24));
+        add(display, BorderLayout.NORTH);
+
+        // Create number buttons
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(4, 4, 10, 10));
+
+        numberButtons = new JButton[10];
+        for (int i = 0; i < 10; i++) {
+            numberButtons[i] = new JButton(String.valueOf(i));
+            numberButtons[i].setFont(new Font("Arial", Font.PLAIN, 24));
+            numberButtons[i].addActionListener(this);
+            panel.add(numberButtons[i]);
+        }
+
+        // Create operator buttons
+        addButton = new JButton("+");
+        subtractButton = new JButton("-");
+        multiplyButton = new JButton("*");
+        divideButton = new JButton("/");
+        equalsButton = new JButton("=");
+        clearButton = new JButton("C");
+
+        addButton.setFont(new Font("Arial", Font.PLAIN, 24));
+        subtractButton.setFont(new Font("Arial", Font.PLAIN, 24));
+        multiplyButton.setFont(new Font("Arial", Font.PLAIN, 24));
+        divideButton.setFont(new Font("Arial", Font.PLAIN, 24));
+        equalsButton.setFont(new Font("Arial", Font.PLAIN, 24));
+        clearButton.setFont(new Font("Arial", Font.PLAIN, 24));
+
+        addButton.addActionListener(this);
+        subtractButton.addActionListener(this);
+        multiplyButton.addActionListener(this);
+        divideButton.addActionListener(this);
+        equalsButton.addActionListener(this);
+        clearButton.addActionListener(this);
+
+        panel.add(addButton);
+        panel.add(subtractButton);
+        panel.add(multiplyButton);
+        panel.add(divideButton);
+        panel.add(equalsButton);
+        panel.add(clearButton);
+
+        add(panel, BorderLayout.CENTER);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        String command = e.getActionCommand();
+
+        // Handle number button clicks
+        for (int i = 0; i < 10; i++) {
+            if (command.equals(String.valueOf(i))) {
+                display.setText(display.getText() + command);
+                return;
+            }
+        }
+
+        // Handle operator button clicks
+        switch (command) {
+            case "+":
+                num1 = Double.parseDouble(display.getText());
+                operator = '+';
+                display.setText("");
+                break;
+            case "-":
+                num1 = Double.parseDouble(display.getText());
+                operator = '-';
+                display.setText("");
+                break;
+            case "*":
+                num1 = Double.parseDouble(display.getText());
+                operator = '*';
+                display.setText("");
+                break;
+            case "/":
+                num1 = Double.parseDouble(display.getText());
+                operator = '/';
+                display.setText("");
+                break;
+            case "=":
+                num2 = Double.parseDouble(display.getText());
+                switch (operator) {
+                    case '+':
+                        result = num1 + num2;
+                        break;
+                    case '-':
+                        result = num1 - num2;
+                        break;
+                    case '*':
+                        result = num1 * num2;
+                        break;
+                    case '/':
+                        if (num2 != 0) {
+                            result = num1 / num2;
+                        } else {
+                            display.setText("Error");
+                            return;
+                        }
+                        break;
+                }
+                display.setText(String.valueOf(result));
+                break;
+            case "C":
+                display.setText("");
+                num1 = num2 = result = 0;
+                operator = '\0';
+                break;
+        }
+    }
+
+    public static void main(String[] args) {
+        // Create and display the frame
+        SimpleCalculator calculator = new SimpleCalculator();
+        calculator.setVisible(true);
+    }
+}
