@@ -1,0 +1,674 @@
+-----------------------------------------state space-------------------------------------- 
+from collections import deque
+
+def print_state(state):
+    for i in range(0, 9, 3):
+        print(state[i:i+3])
+    print()
+
+def get_next_states(state):
+    states = []
+    pos = state.index(0)
+
+    moves = {
+        0:[1,3], 1:[0,2,4], 2:[1,5],
+        3:[0,4,6], 4:[1,3,5,7], 5:[2,4,8],
+        6:[3,7], 7:[4,6,8], 8:[5,7]
+    }
+
+    for move in moves[pos]:
+        new_state = state[:]
+        new_state[pos], new_state[move] = new_state[move], new_state[pos]
+        states.append(new_state)
+
+    return states
+
+initial = list(map(int, input("Enter initial state: ").split()))
+goal = list(map(int, input("Enter goal state: ").split()))
+
+queue = deque()
+visited = []
+
+queue.append(initial)
+visited.append(initial)
+
+while queue:
+    current = queue.popleft()
+
+    print_state(current)
+
+    if current == goal:
+        print("Goal Reached")
+        break
+
+    for next_state in get_next_states(current):
+        if next_state not in visited:
+            visited.append(next_state)
+            queue.append(next_state)
+
+
+
+
+----------------------------------------Manhattan hamming----------------------------------
+
+def manhattan(state, goal):
+    distance = 0
+
+    for num in range(1, 9):
+        i = state.index(num)
+        j = goal.index(num)
+
+        x1, y1 = divmod(i, 3)
+        x2, y2 = divmod(j, 3)
+
+        distance += abs(x1-x2) + abs(y1-y2)
+
+    return distance
+
+def hamming(state, goal):
+    count = 0
+
+    for i in range(9):
+        if state[i] != 0 and state[i] != goal[i]:
+            count += 1
+
+    return count
+
+initial = list(map(int, input("Enter initial state: ").split()))
+goal = list(map(int, input("Enter goal state: ").split()))
+
+g = 0
+
+m = manhattan(initial, goal)
+h = hamming(initial, goal)
+
+print("Manhattan Distance =", m)
+print("Hamming Distance =", h)
+
+print("A* Cost using Manhattan =", g + m)
+print("A* Cost using Hamming =", g + h)
+
+-------------------------------------------A*---------------------------------------------
+
+
+import heapq
+
+def print_state(state):
+    for i in range(0, 9, 3):
+        print(state[i:i+3])
+    print()
+
+def manhattan(state, goal):
+    distance = 0
+    for num in range(1, 9):
+        i = state.index(num)
+        j = goal.index(num)
+
+        x1, y1 = divmod(i, 3)
+        x2, y2 = divmod(j, 3)
+
+        distance += abs(x1 - x2) + abs(y1 - y2)
+    return distance
+
+def get_next_states(state):
+    pos = state.index(0)
+
+    moves = {
+        0:[1,3], 1:[0,2,4], 2:[1,5],
+        3:[0,4,6], 4:[1,3,5,7], 5:[2,4,8],
+        6:[3,7], 7:[4,6,8], 8:[5,7]
+    }
+
+    states = []
+
+    for move in moves[pos]:
+        new_state = state[:]
+        new_state[pos], new_state[move] = new_state[move], new_state[pos]
+        states.append(new_state)
+
+    return states
+
+def astar(initial, goal):
+    pq = []
+    visited = []
+
+    g = 0
+    h = manhattan(initial, goal)
+    f = g + h
+
+    heapq.heappush(pq, (f, g, initial, []))
+
+    while pq:
+        f, g, current, path = heapq.heappop(pq)
+
+        if current in visited:
+            continue
+
+        visited.append(current)
+
+        path = path + [current]
+
+        if current == goal:
+            return path
+
+        for next_state in get_next_states(current):
+            if next_state not in visited:
+                new_g = g + 1
+                new_h = manhattan(next_state, goal)
+                new_f = new_g + new_h
+
+                heapq.heappush(pq, (new_f, new_g, next_state, path))
+
+    return None
+
+initial = list(map(int, input("Enter initial state: ").split()))
+goal = list(map(int, input("Enter goal state: ").split()))
+
+result = astar(initial, goal)
+
+if result:
+    print("Solution Path:\n")
+    for step in result:
+        print_state(step)
+else:
+    print("No Solution Found")
+
+--------------------------------------------TSPHILL----------------------------------------
+import random
+
+dist = [
+    [0, 10, 15, 20],
+    [10, 0, 35, 25],
+    [15, 35, 0, 30],
+    [20, 25, 30, 0]
+]
+
+cities = ['A', 'B', 'C', 'D']
+
+def cost(route):
+    total = 0
+    
+    for i in range(len(route)-1):
+        total += dist[route[i]][route[i+1]]
+    
+    total += dist[route[-1]][route[0]]
+    
+    return total
+
+def hill_climb():
+    route = [0,1,2,3]
+    random.shuffle(route)
+    
+    print("Initial Route:", route)
+    print("Initial Cost:", cost(route))
+    
+    improved = True
+    
+    while improved:
+        improved = False
+        
+        for i in range(len(route)):
+            for j in range(i+1, len(route)):
+                
+                new_route = route[:]
+                new_route[i], new_route[j] = new_route[j], new_route[i]
+                
+                if cost(new_route) < cost(route):
+                    route = new_route
+                    improved = True
+    
+    return route
+
+best = hill_climb()
+
+print("Best Route:", best)
+print("Minimum Cost:", cost(best))
+
+----------------------------------------TSPNEIGH-------------------------------------------
+
+import random
+
+dist = [
+    [0, 10, 15, 20],
+    [10, 0, 35, 25],
+    [15, 35, 0, 30],
+    [20, 25, 30, 0]
+]
+
+def cost(route):
+    total = 0
+    
+    for i in range(len(route)-1):
+        total += dist[route[i]][route[i+1]]
+    
+    total += dist[route[-1]][route[0]]
+    
+    return total
+
+route = [0,1,2,3]
+random.shuffle(route)
+
+print("Random Route:", route)
+print("Cost:", cost(route))
+
+for i in range(len(route)-1):
+    new_route = route[:]
+    
+    new_route[i], new_route[i+1] = new_route[i+1], new_route[i]
+    
+    if cost(new_route) < cost(route):
+        route = new_route
+
+print("Improved Route:", route)
+print("Improved Cost:", cost(route))
+
+----------------------------------------CRPT--------------------------------------------
+
+from itertools import permutations
+
+letters = "SENDMORY"
+digits = range(10)
+
+for p in permutations(digits, len(letters)):
+    s, e, n, d, m, o, r, y = p
+
+    if s == 0 or m == 0:
+        continue
+
+    send = 1000*s + 100*e + 10*n + d
+    more = 1000*m + 100*o + 10*r + e
+    money = 10000*m + 1000*o + 100*n + 10*e + y
+
+    if send + more == money:
+        print("SEND =", send)
+        print("MORE =", more)
+        print("MONEY =", money)
+        break
+
+from itertools import permutations
+
+letters = "CROSADNGE"
+digits = range(10)
+
+for p in permutations(digits, len(letters)):
+    c, r, o, s, a, d, n, g, e = p
+
+    if c == 0 or r == 0 or d == 0:
+        continue
+
+    cross = 10000*c + 1000*r + 100*o + 10*s + s
+    roads = 10000*r + 1000*o + 100*a + 10*d + s
+    danger = 100000*d + 10000*a + 1000*n + 100*g + 10*e + r
+
+    if cross + roads == danger:
+        print("CROSS =", cross)
+        print("ROADS =", roads)
+        print("DANGER =", danger)
+        break
+
+------------------------------MINIMAX-----------------------------------------------------
+
+board = [" " for i in range(9)]
+
+def show_board():
+    print()
+    print(board[0], "|", board[1], "|", board[2])
+    print("--+---+--")
+    print(board[3], "|", board[4], "|", board[5])
+    print("--+---+--")
+    print(board[6], "|", board[7], "|", board[8])
+    print()
+
+def check_winner(player):
+    win_positions = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
+    ]
+
+    for pos in win_positions:
+        if board[pos[0]] == board[pos[1]] == board[pos[2]] == player:
+            return True
+    return False
+
+def is_draw():
+    return " " not in board
+
+def minimax(is_max):
+    if check_winner("O"):
+        return 1
+    if check_winner("X"):
+        return -1
+    if is_draw():
+        return 0
+
+    if is_max:
+        best = -100
+        for i in range(9):
+            if board[i] == " ":
+                board[i] = "O"
+                score = minimax(False)
+                board[i] = " "
+                best = max(best, score)
+        return best
+    else:
+        best = 100
+        for i in range(9):
+            if board[i] == " ":
+                board[i] = "X"
+                score = minimax(True)
+                board[i] = " "
+                best = min(best, score)
+        return best
+
+def computer_move():
+    best_score = -100
+    move = 0
+
+    for i in range(9):
+        if board[i] == " ":
+            board[i] = "O"
+            score = minimax(False)
+            board[i] = " "
+
+            if score > best_score:
+                best_score = score
+                move = i
+
+    board[move] = "O"
+
+def user_move():
+    pos = int(input("Enter position (1-9): ")) - 1
+    if board[pos] == " ":
+        board[pos] = "X"
+    else:
+        print("Already filled!")
+        user_move()
+
+while True:
+    show_board()
+    user_move()
+
+    if check_winner("X"):
+        show_board()
+        print("You Win!")
+        break
+
+    if is_draw():
+        show_board()
+        print("Match Draw!")
+        break
+
+    computer_move()
+
+    if check_winner("O"):
+        show_board()
+        print("Computer Wins!")
+        break
+
+    if is_draw():
+        show_board()
+        print("Match Draw!")
+        break
+
+
+board = [" "] * 9
+
+def show():
+    print()
+    print(board[0], "|", board[1], "|", board[2])
+    print("--+---+--")
+    print(board[3], "|", board[4], "|", board[5])
+    print("--+---+--")
+    print(board[6], "|", board[7], "|", board[8])
+    print()
+
+def check(player):
+    wins = [
+        (0,1,2), (3,4,5), (6,7,8),
+        (0,3,6), (1,4,7), (2,5,8),
+        (0,4,8), (2,4,6)
+    ]
+
+    for a,b,c in wins:
+        if board[a] == board[b] == board[c] == player:
+            return True
+    return False
+
+def draw():
+    return " " not in board
+
+turn = "X"
+
+while True:
+    show()
+
+    pos = int(input(f"Player {turn} Enter position (1-9): ")) - 1
+
+    if board[pos] != " ":
+        print("Already filled")
+        continue
+
+    board[pos] = turn
+
+    if check(turn):
+        show()
+        print("Player", turn, "Wins")
+        break
+
+    if draw():
+        show()
+        print("Match Draw")
+        break
+
+    if turn == "X":
+        turn = "O"
+    else:
+        turn = "X"
+
+
+-----------------------------------------expert--------------------------------------------
+
+
+print("MINI EXPERT SYSTEM")
+print("1. Disease Diagnosis")
+print("2. Career Guidance")
+print("3. Computer Troubleshooting")
+
+choice = int(input("Enter your choice: "))
+
+if choice == 1:
+    fever = input("Do you have fever (yes/no): ").lower()
+    cough = input("Do you have cough (yes/no): ").lower()
+    headache = input("Do you have headache (yes/no): ").lower()
+
+    if fever == "yes" and cough == "yes":
+        print("Possible Disease: Flu")
+    elif fever == "yes" and headache == "yes":
+        print("Possible Disease: Viral Fever")
+    else:
+        print("Consult a doctor")
+
+elif choice == 2:
+    coding = input("Do you like coding? (yes/no): ").lower()
+    maths = input("Do you like maths? (yes/no): ").lower()
+    drawing = input("Do you like drawing? (yes/no): ").lower()
+
+    if coding == "yes" and maths == "yes":
+        print("Recommended Career: Software Engineer")
+    elif drawing == "yes":
+        print("Recommended Career: Designer")
+    else:
+        print("Recommended Career: General Management")
+
+elif choice == 3:
+    power = input("Is computer not starting? (yes/no): ").lower()
+    internet = input("Is internet not working? (yes/no): ").lower()
+
+    if power == "yes":
+        print("Solution: Check power cable or battery.")
+    elif internet == "yes":
+        print("Solution: Restart router or check WiFi.")
+    else:
+        print("No issue detected.")
+
+else:
+    print("Invalid Choice")
+
+
+----------------------------------------chatbot--------------------------------------------
+
+
+print("Simple Chatbot")
+print("Type 'bye' to exit")
+
+while True:
+    user = input("You: ").lower()
+
+    if user == "hello" or user == "hi":
+        print("Bot: Hello! How can I help you?")
+
+    elif "name" in user:
+        print("Bot: I am a simple chatbot.")
+
+    elif "fees" in user:
+        print("Bot: Please check college website for fees details.")
+
+    elif "course" in user:
+        print("Bot: We offer AI, Data Science, and Computer courses.")
+
+    elif "bye" in user:
+        print("Bot: Goodbye!")
+        break
+
+    else:
+        print("Bot: Sorry, I don't understand.")
+
+
+--------------------------------------facedetect-------------------------------------------
+
+
+pip install opencv-python
+pip install face_recognition
+pip install numpy
+
+import cv2
+
+# Load face detector model
+face_cascade = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+)
+
+# Start webcam
+cap = cv2.VideoCapture(0)
+
+while True:
+
+    ret, frame = cap.read()
+
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    faces = face_cascade.detectMultiScale(
+        gray,
+        scaleFactor=1.1,
+        minNeighbors=5
+    )
+
+    for (x, y, w, h) in faces:
+        cv2.rectangle(
+            frame,
+            (x, y),
+            (x + w, y + h),
+            (0, 255, 0),
+            2
+        )
+
+    cv2.imshow("Face Detection", frame)
+
+    if cv2.waitKey(1) == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+
+
+---------------------------------------facerecog-------------------------------------------
+
+
+pip install opencv-python
+pip install face_recognition
+pip install numpy
+
+
+
+import face_recognition
+import cv2
+import os
+
+known_faces = []
+known_names = []
+
+folder = "known"
+
+for file in os.listdir(folder):
+
+    image = face_recognition.load_image_file(folder + "/" + file)
+
+    encoding = face_recognition.face_encodings(image)[0]
+
+    known_faces.append(encoding)
+
+    name = file.split(".")[0]
+
+    known_names.append(name)
+
+cap = cv2.VideoCapture(0)
+
+while True:
+
+    ret, frame = cap.read()
+
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    locations = face_recognition.face_locations(rgb)
+
+    encodings = face_recognition.face_encodings(rgb, locations)
+
+    for (top, right, bottom, left), face_encoding in zip(locations, encodings):
+
+        matches = face_recognition.compare_faces(
+            known_faces,
+            face_encoding
+        )
+
+        name = "Unknown"
+
+        if True in matches:
+            index = matches.index(True)
+            name = known_names[index]
+
+        cv2.rectangle(frame, (left, top), (right, bottom), (0,255,0), 2)
+
+        cv2.putText(
+            frame,
+            name,
+            (left, top - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (0,255,0),
+            2
+        )
+
+    cv2.imshow("Recognition", frame)
+
+    if cv2.waitKey(1) == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+
+pip install opencv-python
+pip install face_recognition
+pip install numpy
+
+----------------------------------------END------------------------------------------------
